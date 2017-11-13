@@ -2,82 +2,16 @@ package sheets
 
 import (
   "bufio"
-  "fmt"
   "io"
   "strings"
 
 	"google.golang.org/api/sheets/v4"
 )
 
-const (
-  Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-)
-
 
 type Spreadsheet struct {
   client *Client
   info *sheets.Spreadsheet
-}
-
-
-func aRangeLetter(idx int) string {
-  secondLet := idx % len(Alphabet)
-
-  if idx > len(Alphabet) {
-    firstLet := idx / len(Alphabet)
-    return fmt.Sprintf("%s%s",
-    Alphabet[firstLet:firstLet + 1], Alphabet[secondLet:secondLet + 1])
-  }
-
-  return fmt.Sprintf("%s", Alphabet[secondLet:secondLet+1])
-}
-
-type CellPos struct {
-  Row int
-  Col int
-}
-
-func (c CellPos) A1Notation() string {
-  return fmt.Sprintf("%s%d", aRangeLetter(c.Col), c.Row + 1)
-}
-
-type CellRange struct {
-  Start CellPos
-  End CellPos
-}
-
-func (a CellRange) String() string {
-  return fmt.Sprintf("%s:%s", a.Start.A1Notation(), a.End.A1Notation())
-}
-
-type SheetRange struct {
-  SheetName string
-  Range CellRange
-}
-
-func (s *SheetRange) String() string {
-  return fmt.Sprintf("%s!%s", s.SheetName, s.Range.String())
-}
-
-func DefaultRange(data [][]string) CellRange {
-  bottomLeft := CellPos{len(data), len(data[0])}
-
-  return CellRange{CellPos{}, bottomLeft}
-}
-
-
-func TsvToArr(reader io.Reader) ([][]string, error) {
-    delimiter := "\t"
-    scanner := bufio.NewScanner(reader)
-
-    data := make([][]string, 0)
-
-    for scanner.Scan() {
-      pieces := strings.Split(scanner.Text(), delimiter)
-      data = append(data, pieces)
-    }
-
-    return data, nil
 }
 
 func strToInterface(strs []string) []interface{} {
@@ -116,4 +50,18 @@ func (s *Spreadsheet) Import(sheetName string, data [][]string, cellRange CellRa
   return err
 }
 
+
+func TsvToArr(reader io.Reader) ([][]string, error) {
+    delimiter := "\t"
+    scanner := bufio.NewScanner(reader)
+
+    data := make([][]string, 0)
+
+    for scanner.Scan() {
+      pieces := strings.Split(scanner.Text(), delimiter)
+      data = append(data, pieces)
+    }
+
+    return data, nil
+}
 
