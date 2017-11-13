@@ -14,18 +14,13 @@ type Spreadsheet struct {
   info *sheets.Spreadsheet
 }
 
-func strToInterface(strs []string) []interface{} {
-      arr := make([]interface{}, len(strs))
-
-      for i, s := range(strs) {
-        arr[i] = s
-      }
-      return arr
-}
-
 
 func (s *Spreadsheet) Id() string {
   return s.info.SpreadsheetId
+}
+
+func (s *Spreadsheet) Url() string {
+  return s.info.SpreadsheetUrl
 }
 
 func (s *Spreadsheet) Import(sheetName string, data [][]string, cellRange CellRange) error {
@@ -50,8 +45,12 @@ func (s *Spreadsheet) Import(sheetName string, data [][]string, cellRange CellRa
   return err
 }
 
+func (s *Spreadsheet) Share(email string) error {
+  return s.client.ShareFile(s.Id(), email)
+}
 
-func TsvToArr(reader io.Reader) ([][]string, error) {
+
+func TsvToArr(reader io.Reader) [][]string {
     delimiter := "\t"
     scanner := bufio.NewScanner(reader)
 
@@ -62,6 +61,15 @@ func TsvToArr(reader io.Reader) ([][]string, error) {
       data = append(data, pieces)
     }
 
-    return data, nil
+    return data
+}
+
+func strToInterface(strs []string) []interface{} {
+      arr := make([]interface{}, len(strs))
+
+      for i, s := range(strs) {
+        arr[i] = s
+      }
+      return arr
 }
 

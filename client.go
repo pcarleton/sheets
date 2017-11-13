@@ -48,11 +48,7 @@ func (c *Client) ListFiles(query string) ([]*drive.File, error) {
 }
 
 func (c *Client) CreateSpreadsheetFromTsv(title string, reader io.Reader) (*Spreadsheet, error) {
-  arr, err := TsvToArr(reader)
-  if err != nil {
-    return nil, err
-  }
-
+  arr := TsvToArr(reader)
   return c.CreateSpreadsheet(title, arr)
 }
 
