@@ -92,6 +92,17 @@ func (c *Client) TransferOwnership(fileID, email string) error {
   return err
 }
 
+func (c *Client) GetSpreadsheet(spreadsheetId string) (*Spreadsheet, error) {
+  ssInfo, err := c.Sheets.Spreadsheets.Get(spreadsheetId).Do()
+
+  if err != nil {
+    return nil, err
+  }
+
+  return &Spreadsheet{c, ssInfo}, nil
+}
+
+
 func getServiceAccountConfig(reader io.Reader) (*jwt.Config, error) {
 	b, err := ioutil.ReadAll(reader)
 

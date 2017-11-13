@@ -22,6 +22,7 @@ var posTests = []struct {
   {CellPos{0, 650}, "YA1"},
   {CellPos{0, 675}, "YZ1"},
   {CellPos{0, 701}, "ZZ1"},
+  {CellPos{0, 702}, "AAA1"},
 
 }
 
