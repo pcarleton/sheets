@@ -1,6 +1,12 @@
 package sheets
 
 import (
+  "context"
+  "fmt"
+  "io"
+  "io/ioutil"
+
+  "golang.org/x/oauth2/jwt"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/sheets/v4"
 	"google.golang.org/api/drive/v3"
@@ -14,18 +20,6 @@ type Client struct {
 const (
 	sheetMimeType = "application/vnd.google-apps.spreadsheet"
 )
-
-func (c *Client) ListSpreadsheets(query string) ([]*drive.File, error) {
-	r, err := c.Drive.Files.List().PageSize(10).
-			Q(query).
-			Fields("nextPageToken, files(id, name, mimeType)").Do()
-
-	if err != nil {
-    return nil, err
-	}
-
-  return r.Files, nil
-}
 
 func (c *Client) ShareFile(fileID, email string) error {
   perm := drive.Permission{
@@ -42,7 +36,7 @@ func (c *Client) ShareFile(fileID, email string) error {
 }
 
 func (c *Client) ListFiles(query string) ([]*drive.File, error) {
-	r, err := srv.Drive.Files.List().PageSize(10).
+	r, err := c.Drive.Files.List().PageSize(10).
 			Q(query).
 			Fields("nextPageToken, files(id, name, mimeType)").Do()
 
@@ -53,7 +47,7 @@ func (c *Client) ListFiles(query string) ([]*drive.File, error) {
   return r.Files, nil
 }
 
-func (c *Client) CreateSpreadsheetFromTsv(title string, reader io.Reader) (Spreadsheet, error) {
+func (c *Client) CreateSpreadsheetFromTsv(title string, reader io.Reader) (*Spreadsheet, error) {
   arr, err := TsvToArr(reader)
   if err != nil {
     return nil, err
@@ -66,25 +60,25 @@ func (c *Client) CreateSpreadsheet(title string, data [][]string) (*Spreadsheet,
   ssProps := &sheets.Spreadsheet{
     Properties: &sheets.SpreadsheetProperties{Title: title},
   }
-  ssInfo, err := srv.Sheets.Spreadsheets.Create(ssProps).Do()
+  ssInfo, err := c.Sheets.Spreadsheets.Create(ssProps).Do()
   if err != nil {
     return nil, err
   }
 
   ss := &Spreadsheet{
     client: c,
-    info: ssInfo
+    info: ssInfo,
   }
 
   cellRange := DefaultRange(data)
   sheetname := ""
-  err := ss.Import(sheetname, data, cellRange)
+  err = ss.Import(sheetname, data, cellRange)
 
   return ss, err
 }
 
 func (c *Client) Delete(fileId string) error {
-  req := srv.Drive.Files.Delete(fileId)
+  req := c.Drive.Files.Delete(fileId)
   err := req.Do()
   return err
 }
@@ -102,23 +96,23 @@ func (c *Client) TransferOwnership(fileID, email string) error {
   return err
 }
 
-func getServiceAccountConfig(credsPath string) (*oauth2.Config, error) {
-	b, err := ioutil.ReadFile(credsPath)
+func getServiceAccountConfig(reader io.Reader) (*jwt.Config, error) {
+	b, err := ioutil.ReadAll(reader)
 
 	if err != nil {
-    return nil, fmt.Error("Unable to read credentials file: %s", err)
+    return nil, fmt.Errorf("Unable to read credentials file: %s", err)
 	}
 
-	config, err := google.JWTConfigFromJSON(b, sheetsScope, drive.DriveScope)
+	config, err := google.JWTConfigFromJSON(b, sheets.SpreadsheetsScope, drive.DriveScope)
 	if err != nil {
-    return nil, fmt.Error("Unable parse JWT config: %s", err)
+    return nil, fmt.Errorf("Unable parse JWT config: %s", err)
 	}
 
   return config, nil
 }
 
-func NewServiceAccountClient(credsPath string) (Client, error) {
-  config, err := getServiceAccountConfig(credsPath)
+func NewServiceAccountClient(credsReader io.Reader) (*Client, error) {
+  config, err := getServiceAccountConfig(credsReader)
 
   if err != nil {
     return nil, err
@@ -127,7 +121,6 @@ func NewServiceAccountClient(credsPath string) (Client, error) {
 	ctx := context.Background()
 	client := config.Client(ctx)
 
-	client:= getClient()
 	sheetsSrv, err := sheets.New(client)
   if err != nil {
     return nil, err
@@ -138,6 +131,6 @@ func NewServiceAccountClient(credsPath string) (Client, error) {
     return nil, err
   }
 
-	return Client{sheetsSrv, driveSrv}
+	return &Client{sheetsSrv, driveSrv}, nil
 }
 

@@ -1,6 +1,11 @@
 package sheets
 
 import (
+  "bufio"
+  "fmt"
+  "io"
+  "strings"
+
 	"google.golang.org/api/sheets/v4"
 )
 
@@ -50,14 +55,14 @@ type SheetRange struct {
   Range CellRange
 }
 
-func (s *SheetRange) String string {
+func (s *SheetRange) String() string {
   return fmt.Sprintf("%s!%s", s.SheetName, s.Range.String())
 }
 
-func DefaultRange(data [][]interface{}) CellRange {
+func DefaultRange(data [][]string) CellRange {
   bottomLeft := CellPos{len(data), len(data[0])}
 
-  return CellRange(CellPos{}, bottomLeft)
+  return CellRange{CellPos{}, bottomLeft}
 }
 
 
@@ -86,10 +91,10 @@ func strToInterface(strs []string) []interface{} {
 
 
 func (s *Spreadsheet) Id() string {
-  return s.spreadsheet.SpreadsheetId
+  return s.info.SpreadsheetId
 }
 
-func (s *Spreadsheet) Import(sheetName, data [][]string, cellRange CellRange) error {
+func (s *Spreadsheet) Import(sheetName string, data [][]string, cellRange CellRange) error {
   // Convert to interfaces to satisfy the Google API
   converted := make([][]interface{}, 0)
 
@@ -103,10 +108,10 @@ func (s *Spreadsheet) Import(sheetName, data [][]string, cellRange CellRange) er
     Values: converted,
   }
 
-  req := s.client.Sheets.Spreadsheets.Values.Update(s.Id(), aRange, vRange)
+  req := s.client.Sheets.Spreadsheets.Values.Update(s.Id(), cellRange.String(), vRange)
 
   req.ValueInputOption("USER_ENTERED")
-  _, err = req.Do()
+  _, err := req.Do()
 
   return err
 }
