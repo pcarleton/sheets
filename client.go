@@ -62,8 +62,8 @@ func (c *Client) CreateSpreadsheet(title string, data [][]string) (*Spreadsheet,
   }
 
   ss := &Spreadsheet{
-    client: c,
-    info: ssInfo,
+    Client: c,
+    Spreadsheet: ssInfo,
   }
 
   cellRange := DefaultRange(data)
