@@ -71,7 +71,7 @@ func (c *Client) CreateSpreadsheet(title string, data [][]string) (*Spreadsheet,
   if sheet == nil {
     return nil, fmt.Errorf("Couldn't find sheet %s for %s", sheetname, ss.Id())
   }
-  err = sheet.Update(data, CellPos{})
+  err = sheet.Update(data)
 
   return ss, err
 }

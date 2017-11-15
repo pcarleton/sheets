@@ -51,7 +51,15 @@ func (s *Sheet) Resize(rows, cols int) error {
   return nil
 }
 
-func (s *Sheet) Update(data [][]string, start CellPos) error {
+func (*Sheet) TopLeft() CellPos {
+  return CellPos{0, 0}
+}
+
+func (s *Sheet) Update(data [][]string) error {
+  return s.UpdateFromPosition(data, s.TopLeft())
+}
+
+func (s *Sheet) UpdateFromPosition(data [][]string, start CellPos) error {
   // Convert to interfaces to satisfy the Google API
   converted := make([][]interface{}, 0)
 
