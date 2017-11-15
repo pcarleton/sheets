@@ -66,9 +66,12 @@ func (c *Client) CreateSpreadsheet(title string, data [][]string) (*Spreadsheet,
     Spreadsheet: ssInfo,
   }
 
-  cellRange := DefaultRange(data)
-  sheetname := ""
-  err = ss.Import(sheetname, data, cellRange)
+  sheetname := "Sheet1"
+  sheet := ss.GetSheet(sheetname)
+  if sheet == nil {
+    return nil, fmt.Errorf("Couldn't find sheet %s for %s", sheetname, ss.Id())
+  }
+  err = sheet.Update(data, CellPos{})
 
   return ss, err
 }

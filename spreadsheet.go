@@ -30,27 +30,6 @@ func (s *Spreadsheet) Url() string {
   return s.SpreadsheetUrl
 }
 
-func (s *Spreadsheet) Import(sheetName string, data [][]string, cellRange CellRange) error {
-  // Convert to interfaces to satisfy the Google API
-  converted := make([][]interface{}, 0)
-
-  for _, row := range(data) {
-    converted = append(converted, strToInterface(row))
-  }
-
-  // TODO: Check if sheet exists already
-  vRange := &sheets.ValueRange{
-    Range: cellRange.String(),
-    Values: converted,
-  }
-
-  req := s.Client.Sheets.Spreadsheets.Values.Update(s.Id(), cellRange.String(), vRange)
-
-  req.ValueInputOption("USER_ENTERED")
-  _, err := req.Do()
-
-  return err
-}
 
 func (s *Spreadsheet) GetSheet(title string) *Sheet {
   query := strings.ToLower(title)
@@ -63,13 +42,39 @@ func (s *Spreadsheet) GetSheet(title string) *Sheet {
   return nil
 }
 
+func (s *Sheet) Title() string {
+  return s.Properties.Title
+}
+
 
 func (s *Sheet) Resize(rows, cols int) error {
   return nil
 }
 
 func (s *Sheet) Update(data [][]string, start CellPos) error {
-  return nil
+  // Convert to interfaces to satisfy the Google API
+  converted := make([][]interface{}, 0)
+
+  for _, row := range(data) {
+    converted = append(converted, strToInterface(row))
+  }
+
+  cellRange := DefaultRange(data)
+
+  sheetRange := fmt.Sprintf("%s!%s", s.Title(), cellRange.String())
+
+  // TODO: Resize sheet
+  vRange := &sheets.ValueRange{
+    Range: sheetRange,
+    Values: converted,
+  }
+
+  req := s.Client.Sheets.Spreadsheets.Values.Update(s.Spreadsheet.Id(), sheetRange, vRange)
+
+  req.ValueInputOption("USER_ENTERED")
+  _, err := req.Do()
+
+  return err
 }
 
 func (s *Spreadsheet) DoBatch(reqs ...*sheets.Request) (*sheets.BatchUpdateSpreadsheetResponse, error) {
