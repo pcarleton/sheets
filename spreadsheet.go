@@ -59,6 +59,30 @@ func (s *Sheet) Update(data [][]string) error {
   return s.UpdateFromPosition(data, s.TopLeft())
 }
 
+func (s *Sheet) GetContents() ([][]string, error) {
+    if s.Data == nil {
+      return nil, fmt.Errorf("No data fetched, only callable on sheets fetched with GetSpreadsheetWithData TODO: fetch!")
+    }
+
+    // Not sure where there would be multiple data 
+    data := s.Data[0]
+
+    matrix := make([][]string, len(data.RowData))
+    for rowNum, rowData := range data.RowData {
+      row := make([]string, len(rowData.Values))
+      for colIdx, value := range rowData.Values {
+        if value.EffectiveValue != nil {
+          row[colIdx] = value.EffectiveValue.StringValue
+        } else {
+          row[colIdx] = ""
+        }
+      }
+      matrix[rowNum] = row
+    }
+
+    return matrix, nil
+}
+
 func (s *Sheet) UpdateFromPosition(data [][]string, start CellPos) error {
   // Convert to interfaces to satisfy the Google API
   converted := make([][]interface{}, 0)

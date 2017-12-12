@@ -105,6 +105,16 @@ func (c *Client) GetSpreadsheet(spreadsheetId string) (*Spreadsheet, error) {
   return &Spreadsheet{c, ssInfo}, nil
 }
 
+func (c *Client) GetSpreadsheetWithData(spreadsheetId string) (*Spreadsheet, error) {
+  ssInfo, err := c.Sheets.Spreadsheets.Get(spreadsheetId).IncludeGridData(true).Do()
+
+  if err != nil {
+    return nil, err
+  }
+
+  return &Spreadsheet{c, ssInfo}, nil
+}
+
 
 func getServiceAccountConfig(reader io.Reader) (*jwt.Config, error) {
 	b, err := ioutil.ReadAll(reader)
