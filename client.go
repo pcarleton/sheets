@@ -49,26 +49,35 @@ func (c *Client) ListFiles(query string) ([]*drive.File, error) {
 
 func (c *Client) CreateSpreadsheetFromTsv(title string, reader io.Reader) (*Spreadsheet, error) {
   arr := TsvToArr(reader, "\t")
-  return c.CreateSpreadsheet(title, arr)
+  return c.CreateSpreadsheetWithData(title, arr)
 }
 
 func (c *Client) CreateSpreadsheetFromCsv(title string, reader io.Reader, delimiter string) (*Spreadsheet, error) {
   arr := TsvToArr(reader, delimiter)
-  return c.CreateSpreadsheet(title, arr)
+  return c.CreateSpreadsheetWithData(title, arr)
 }
 
-func (c *Client) CreateSpreadsheet(title string, data [][]string) (*Spreadsheet, error) {
-  ssProps := &sheets.Spreadsheet{
-    Properties: &sheets.SpreadsheetProperties{Title: title},
-  }
-  ssInfo, err := c.Sheets.Spreadsheets.Create(ssProps).Do()
-  if err != nil {
-    return nil, err
-  }
+func (c *Client) CreateSpreadsheet(title string) (*Spreadsheet, error) {
+	ssProps := &sheets.Spreadsheet{
+		Properties: &sheets.SpreadsheetProperties{Title: title},
+	}
+	ssInfo, err := c.Sheets.Spreadsheets.Create(ssProps).Do()
+	if err != nil {
+		return nil, err
+	}
 
-  ss := &Spreadsheet{
-    Client: c,
-    Spreadsheet: ssInfo,
+	ss := &Spreadsheet{
+		Client: c,
+		Spreadsheet: ssInfo,
+	}
+
+	return ss, nil
+}
+
+func (c *Client) CreateSpreadsheetWithData(title string, data [][]string) (*Spreadsheet, error) {
+  ss, err := c.CreateSpreadsheet(title)
+  if err != nil {
+      return nil, err
   }
 
   sheetname := "Sheet1"
