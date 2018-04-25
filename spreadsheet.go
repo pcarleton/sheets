@@ -157,8 +157,7 @@ func (s *Spreadsheet) Share(email string) error {
 }
 
 
-func TsvToArr(reader io.Reader) [][]string {
-    delimiter := "\t"
+func TsvToArr(reader io.Reader, delimiter string) [][]string {
     scanner := bufio.NewScanner(reader)
 
     data := make([][]string, 0)
