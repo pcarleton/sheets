@@ -36,3 +36,36 @@ func TestCellPosA1Notation(t *testing.T) {
   }
 }
 
+var rangeTests = []struct{
+  topLeft CellPos
+  width int
+  height int
+  expected string
+}{
+  {CellPos{}, 1, 1, "A1:A1"},
+  {CellPos{}, 1, 2, "A1:A2"},
+  {CellPos{}, 2, 2, "A1:B2"},
+  {CellPos{0, 10}, 2, 2, "K1:L2"},
+  {CellPos{10, 3}, 2, 3, "D11:E13"},
+}
+
+func TestRange(t *testing.T) {
+  for _, tt := range rangeTests {
+    var data [][]string
+    for i := 0; i < tt.height; i++ {
+      var row []string
+      for j := 0; j < tt.width; j++ {
+        row = append(row, "1")
+      }
+      data = append(data, row)
+    }
+
+    got := tt.topLeft.RangeForData(data).String()
+
+    if got != tt.expected {
+      t.Errorf("Wanted %s, but got %s for %+v, table: %v", tt.expected, got, tt, data)
+    }
+
+  }
+}
+

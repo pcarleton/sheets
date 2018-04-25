@@ -91,7 +91,7 @@ func (s *Sheet) UpdateFromPosition(data [][]string, start CellPos) error {
     converted = append(converted, strToInterface(row))
   }
 
-  cellRange := DefaultRange(data)
+  cellRange := start.RangeForData(data)
 
   sheetRange := fmt.Sprintf("%s!%s", s.Title(), cellRange.String())
 

@@ -19,7 +19,7 @@ var tsvTests = []struct {
 
 func TestTsvToArr(t *testing.T) {
   for _, tt := range tsvTests {
-    got := TsvToArr(strings.NewReader(tt.data))
+    got := TsvToArr(strings.NewReader(tt.data), "\t")
     if len(got) != len(tt.result) {
         t.Errorf("For \n%s\n, mismatched rows. wanted %v, but got %v", tt.data, tt.result, got)
     }
